@@ -85,7 +85,24 @@ print("\n***** PROBLEM 1 *****\n")
 ## - a special representation method, which returns "ITUNES MEDIA: <itunes id>" with the iTunes id number for the piece of media (e.g. the track) only in place of "<itunes id>"
 ## - a special len method, which, for the Media class, returns 0 no matter what. (The length of an audiobook might mean something different from the length of a song, depending on how you want to define them!)
 ## - a special contains method (for the in operator) which takes one additional input, as all contains methods must, which should always be a string, and checks to see if the string input to this contains method is INSIDE the string representing the title of this piece of media (the title instance variable)
+class Media(object):
+    def __init__(self, media):
+        self.title = media["trackName"]
+        self.author = media["artistName"]
+        self.itunes_URL = media["trackViewUrl"]
+        self.itunes_id = media["trackId"]
 
+    def __str__(self):
+        return "{} by {}".format(self.title, self.author)
+
+    def __repr__(self):
+        return "ITUNES MEDIA: {}".format(self.itunes_id)
+
+    def __len__(self):
+        return 0
+
+    def __contains__(self, input):
+        return input in self.title
 
 
 ## [PROBLEM 2] [400 POINTS]
@@ -109,6 +126,18 @@ print("\n***** PROBLEM 2 *****\n")
 
 ## Should have the len method overridden to return the number of seconds in the song. (HINT: The data supplies number of milliseconds in the song... How can you access that data and convert it to seconds?)
 
+class Song(Media):
+    def __init__(self, song):
+        Media.__init__(self, song)
+        self.album = song["collectionName"]
+        self.track_number = song["trackNumber"]
+        self.genre = song["primaryGenreName"]
+        self.mseconds = song["trackTimeMillis"]
+
+    def __len__(self):
+        return int(self.mseconds / 1000)
+
+
 
 
 ### class Movie:
@@ -123,7 +152,22 @@ print("\n***** PROBLEM 2 *****\n")
 
 ## Should have an additional method called title_words_num that returns an integer representing the number of words in the movie description. If there is no movie description, this method should return 0.
 
+class Movie(Media):
+    """docstring for Movie"""
+    def __init__(self, movie):
+        super(Movie, self).__init__(movie)
+        self.rating = movie["contentAdvisoryRating"]
+        self.genre = movie["primaryGenreName"]
+        self.description = movie["longDescription"]      # not dealing with none!!
+        self.description = self.description.encode('utf-8')
+        self.mseconds = movie["trackTimeMillis"]
 
+    def __len__(self):
+        return int(self.mseconds / 1000 / 60)
+
+    def title_words_num(self):
+        des = self.description.split();
+        return len(des)
 
 ## [PROBLEM 3] [150 POINTS]
 print("\n***** PROBLEM 3 *****\n")
@@ -134,11 +178,11 @@ print("\n***** PROBLEM 3 *****\n")
 
 ## NOTE: (The first time you run this file, data will be cached, so the data saved in each variable will be the same each time you run the file, as long as you do not delete your cached data.)
 
-media_samples = sample_get_cache_itunes_data("love")["results"]
+# media_samples = sample_get_cache_itunes_data("love")["results"]
 
-song_samples = sample_get_cache_itunes_data("love","music")["results"]
+# song_samples = sample_get_cache_itunes_data("love","music")["results"]
 
-movie_samples = sample_get_cache_itunes_data("love","movie")["results"]
+# movie_samples = sample_get_cache_itunes_data("love","movie")["results"]
 
 
 ## You may want to do some investigation on these variables to make sure you understand correctly what type of value they hold, what's in each one!
