@@ -3,6 +3,7 @@
 import requests
 import json
 import unittest
+import csv
 
 ## Instructions for each piece to be completed for this project can be found in the file, below.
 
@@ -91,6 +92,11 @@ class Media(object):
         self.author = media["artistName"]
         self.itunes_URL = media["trackViewUrl"]
         self.itunes_id = media["trackId"]
+        if "trackTimeMillis" in media:
+            self.mseconds = media["trackTimeMillis"]
+        else:
+            self.mseconds = 0
+        self.obj_type = "media"
 
     def __str__(self):
         return "{} by {}".format(self.title, self.author)
@@ -132,7 +138,8 @@ class Song(Media):
         self.album = song["collectionName"]
         self.track_number = song["trackNumber"]
         self.genre = song["primaryGenreName"]
-        self.mseconds = song["trackTimeMillis"]
+        self.obj_type = "songs"
+        #self.mseconds = song["trackTimeMillis"]
 
     def __len__(self):
         return int(self.mseconds / 1000)
@@ -158,16 +165,21 @@ class Movie(Media):
         super(Movie, self).__init__(movie)
         self.rating = movie["contentAdvisoryRating"]
         self.genre = movie["primaryGenreName"]
-        self.description = movie["longDescription"]      # not dealing with none!!
-        self.description = self.description.encode('utf-8')
-        self.mseconds = movie["trackTimeMillis"]
+        self.description = movie["longDescription"]      
+        if self.description != None:
+            self.description = self.description.encode('utf-8')
+        self.obj_type = "movies"
+        #self.mseconds = movie["trackTimeMillis"]
 
     def __len__(self):
         return int(self.mseconds / 1000 / 60)
 
     def title_words_num(self):
-        des = self.description.split();
-        return len(des)
+        if self.description == None:
+            return 0
+        else:
+            des = self.description.split();
+            return len(des)
 
 ## [PROBLEM 3] [150 POINTS]
 print("\n***** PROBLEM 3 *****\n")
@@ -178,11 +190,11 @@ print("\n***** PROBLEM 3 *****\n")
 
 ## NOTE: (The first time you run this file, data will be cached, so the data saved in each variable will be the same each time you run the file, as long as you do not delete your cached data.)
 
-# media_samples = sample_get_cache_itunes_data("love")["results"]
+media_samples = sample_get_cache_itunes_data("love")["results"]
 
-# song_samples = sample_get_cache_itunes_data("love","music")["results"]
+song_samples = sample_get_cache_itunes_data("love","music")["results"]
 
-# movie_samples = sample_get_cache_itunes_data("love","movie")["results"]
+movie_samples = sample_get_cache_itunes_data("love","movie")["results"]
 
 
 ## You may want to do some investigation on these variables to make sure you understand correctly what type of value they hold, what's in each one!
@@ -194,9 +206,9 @@ print("\n***** PROBLEM 3 *****\n")
 ## a list of Movie objects saved in a variable movie_list.
 
 ## You may use any method of accumulation to make that happen.
-
-
-
+media_list = [Media(mediaDict) for mediaDict in media_samples]
+song_list = [Song(songDict) for songDict in song_samples]
+movie_list = [Movie(movieDict) for movieDict in movie_samples]
 
 ## [PROBLEM 4] [200 POINTS]
 print("\n***** PROBLEM 4 *****\n")
@@ -227,8 +239,18 @@ print("\n***** PROBLEM 4 *****\n")
 
 ## HINT #4: Write or draw out your plan for this before you actually start writing the code! That will make it much easier.
 
+def writeCSV(media_ls):
+    with open(media_ls[0].obj_type + ".csv", "w") as csvfile:
+        colnames = ["title", "artist", "id", "url", "length"]
+        writer = csv.DictWriter(csvfile, colnames)
+        writer.writeheader()
+        for one_media in media_ls:
+            writer.writerow({"title": one_media.title, "artist": one_media.author, "id": one_media.itunes_id, 
+                            "url": one_media.itunes_URL, "length": len(one_media)})
 
-
+writeCSV(media_list)
+writeCSV(song_list)
+writeCSV(movie_list)
 
 
 
